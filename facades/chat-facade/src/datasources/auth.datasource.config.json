@@ -1,0 +1,41 @@
+{
+  "name": "message",
+  "connector": "rest",
+  "baseURL": "",
+  "crud": false,
+  "options": {
+    "baseUrl": "$AUTH_SERVICE_URL",
+    "headers": {
+      "accept": "application/json",
+      "content-type": "application/json"
+    }
+  },
+  "operations": [
+    {
+      "template": {
+        "method": "GET",
+        "url": "/auth/google",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "fullResponse": true
+      },
+      "functions": {
+        "auth": []
+      }
+    },
+    {
+      "template": {
+        "method": "GET",
+        "url": "/auth/google-auth-redirect",
+        "query": {
+          "code": "{code}"
+        },
+        "fullResponse": true
+      },
+      "functions": {
+        "redirect": ["code"]
+      }
+    }
+  ]
+}

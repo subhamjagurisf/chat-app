@@ -82,6 +82,7 @@ export class ChatFacadeApplication extends BootMixin(
     this.bind(BearerVerifierBindings.Config).to({
       type: BearerVerifierType.facade,
     } as BearerVerifierConfig);
+
     this.component(BearerVerifierComponent);
     // Add authorization component
     this.bind(AuthorizationBindings.CONFIG).to({
