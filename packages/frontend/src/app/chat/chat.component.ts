@@ -1,9 +1,9 @@
-import {Component, OnInit} from '@angular/core';
-import {NgxNotificationService} from 'ngx-notification';
-import {PubNubAngular} from 'pubnub-angular2';
-import {environment} from '../../environments/environment';
-import {Chat, ChatMessage} from '../chat.model';
-import {UserService} from '../chat.service';
+import { Component, OnInit } from '@angular/core';
+import { NgxNotificationService } from 'ngx-notification';
+import { PubNubAngular } from 'pubnub-angular2';
+import { environment } from '../../environments/environment';
+import { Chat, ChatMessage } from '../chat.model';
+import { UserService } from '../chat.service';
 
 @Component({
   selector: 'app-chat',
@@ -29,30 +29,38 @@ export class ChatComponent implements OnInit {
   constructor(
     private readonly userHttpService: UserService,
     private readonly pubnub: PubNubAngular,
-    private readonly ngxNotificationService: NgxNotificationService,
+    private readonly ngxNotificationService: NgxNotificationService
   ) {}
 
   ngOnInit(): void {
     this.channelUUID = environment.CHAT_ROOM;
+    const accessToken = localStorage.getItem('@chat-app-accessToken');
+    if (accessToken) {
+      this.token = accessToken;
+      this.enterToken(accessToken);
+      this.isBooted = true;
+    } else {
+      location.href = '/login';
+    }
   }
   public messages: ChatMessage[] = [];
   public senderUUID = '';
   public channelUUID = environment.CHAT_ROOM;
   public token = '';
+  public isBooted = false;
   public inRoom = true;
 
-  enterToken() {
-    this.userHttpService.getUserTenantId(this.token).subscribe(data => {
-      console.log("data from userHttpService of user", data)
+  enterToken(token: string) {
+    this.userHttpService.getUserTenantId(token).subscribe((data) => {
+      console.log('data from userHttpService of user', data);
       this.senderUUID = data;
     });
   }
 
-
   /**
    * Function to leave the chat room
    * - it sets messages to []
-   * - unsubscribe from pubnub message 
+   * - unsubscribe from pubnub message
    */
   leaveRoom() {
     this.messages = [];
@@ -65,7 +73,7 @@ export class ChatComponent implements OnInit {
    */
   getMessages() {
     this.inRoom = true;
-    this.userHttpService.get(this.token, this.channelUUID).subscribe(data => {
+    this.userHttpService.get(this.token, this.channelUUID).subscribe((data) => {
       this.messages = [];
       for (const d of data) {
         const temp: ChatMessage = {
@@ -95,8 +103,8 @@ export class ChatComponent implements OnInit {
       triggerEvents: ['message'],
     });
 
-    this.pubnub.getMessage(this.channelUUID, msg => {
-      console.log("Pubnub Subscriptions", msg);
+    this.pubnub.getMessage(this.channelUUID, (msg) => {
+      console.log('Pubnub Subscriptions', msg);
       const receivedMessage: ChatMessage = {
         body: msg.message.description,
         subject: msg.message.title,
@@ -108,22 +116,20 @@ export class ChatComponent implements OnInit {
         this.ngxNotificationService.sendMessage(
           `New message from sender: ${msg.message.description}`,
           'info',
-          'top-left',
+          'top-left'
         );
       }
     });
   }
 
-
   /**
-   * 
+   *
    * @param event : Event which contains message data
    * @param userName : Name of sender
    * @param avatar : Avatat of sender
-   * @returns 
+   * @returns
    */
-  sendMessage(event: {message: string}, userName: string, avatar: string) {
-   
+  sendMessage(event: { message: string }, userName: string, avatar: string) {
     //  Restricting if the user is not in the room
     if (!this.inRoom) {
       return;
@@ -150,7 +156,7 @@ export class ChatComponent implements OnInit {
     };
 
     // Posting message to backend via API
-    this.userHttpService.post(dbMessage, this.token).subscribe(response => {
+    this.userHttpService.post(dbMessage, this.token).subscribe((response) => {
       this.messages.push(chatMessage);
     });
   }
